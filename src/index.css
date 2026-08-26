@@ -89,7 +89,9 @@ body {
   position: relative;
   padding: 4rem 1.5rem 5rem;
   background-color: var(--macho-black);
-  background-size: cover;
+  /* Tiled Cena wall — small enough that repeats read as pattern rather than photo. */
+  background-size: 220px auto;
+  background-repeat: repeat;
   background-position: center calc(30% + var(--parallax-y, 0px));
   will-change: background-position;
   background-blend-mode: luminosity;

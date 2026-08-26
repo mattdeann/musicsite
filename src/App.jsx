@@ -166,7 +166,7 @@ export default function App() {
       {/* HERO — Cena gym backdrop blended with fire; biker skeleton floats on top */}
       <header
         className="hero"
-        data-parallax-speed="0.15"
+        data-parallax-speed="-0.35"
         style={{ backgroundImage: `url(${cena1})` }}
       >
         <div className="hero-inner">
