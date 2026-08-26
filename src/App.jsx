@@ -166,7 +166,7 @@ function useEagleFireworks() {
         eagle.style.top = `${event.clientY}px`
         eagle.style.setProperty('--burst-x', `${Math.cos(angle) * distance}px`)
         eagle.style.setProperty('--burst-y', `${Math.sin(angle) * distance}px`)
-        eagle.style.setProperty('--burst-spin', `${Math.random() > 0.5 ? 1 : -1}`)
+        eagle.style.setProperty('--burst-spin', `${Math.random() > 0.5 ? 3 : -1}`)
         document.body.appendChild(eagle)
 
         eagle.addEventListener('animationend', () => eagle.remove(), { once: true })
