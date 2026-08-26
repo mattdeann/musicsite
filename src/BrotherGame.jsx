@@ -22,6 +22,39 @@ export default function BrotherGame() {
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
 
+    // HiDPI: bump the backing store so lines/text stay crisp on retina displays.
+    // Cap at 2 because iOS Safari at 3x doubles the pixel work with no visible gain here.
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    canvas.width = CANVAS_WIDTH * dpr
+    canvas.height = CANVAS_HEIGHT * dpr
+    ctx.scale(dpr, dpr)
+
+    // iOS Safari's canvas won't fall back from `sans-serif` to Apple Color Emoji — declare it explicitly.
+    const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'
+
+    // Rendering emoji glyphs via fillText every frame is the main jank source on iOS.
+    // Pre-render each glyph once into an offscreen canvas, then blit with drawImage in the loop.
+    function createEmojiSprite(emoji, sizePx) {
+      const spriteCanvas = document.createElement('canvas')
+      spriteCanvas.width = sizePx * dpr
+      spriteCanvas.height = sizePx * dpr
+      const spriteCtx = spriteCanvas.getContext('2d')
+      spriteCtx.scale(dpr, dpr)
+      spriteCtx.font = `${sizePx}px ${EMOJI_FONT}`
+      spriteCtx.textBaseline = 'top'
+      spriteCtx.fillText(emoji, 0, 0)
+      return spriteCanvas
+    }
+
+    const brotherSprite = createEmojiSprite('🏍️', BROTHER_SIZE)
+    const womenSprite = createEmojiSprite('👯', 34)
+    const cloudSprite = createEmojiSprite('☁️', 24)
+
+    // Gradient never changes — build it once instead of per-frame.
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT)
+    skyGradient.addColorStop(0, '#1a1512')
+    skyGradient.addColorStop(1, '#3a1e10')
+
     const game = {
       status: 'ready',
       brotherY: GROUND_Y - BROTHER_SIZE,
@@ -84,10 +117,7 @@ export default function BrotherGame() {
     function drawFrame() {
       ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
-      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT)
-      gradient.addColorStop(0, '#1a1512')
-      gradient.addColorStop(1, '#3a1e10')
-      ctx.fillStyle = gradient
+      ctx.fillStyle = skyGradient
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
       ctx.strokeStyle = '#8b2500'
@@ -99,9 +129,7 @@ export default function BrotherGame() {
 
       game.cloudX -= game.status === 'playing' ? 0.6 : 0.2
       if (game.cloudX < -40) game.cloudX = CANVAS_WIDTH + 40
-      ctx.font = '24px sans-serif'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('☁️', game.cloudX, 30)
+      ctx.drawImage(cloudSprite, game.cloudX, 18, 24, 24)
 
       if (game.status === 'playing') {
         game.velocityY += GRAVITY
@@ -149,22 +177,19 @@ export default function BrotherGame() {
         game.score += 0.1
       }
 
-      ctx.font = '34px sans-serif'
-      ctx.textBaseline = 'alphabetic'
       for (const women of game.women) {
-        ctx.fillText('👯‍♀️', women.x, GROUND_Y + 4)
+        ctx.drawImage(womenSprite, women.x, GROUND_Y - 30, 34, 34)
         if (women.width > 30) {
-          ctx.fillText('👯‍♀️', women.x + 20, GROUND_Y + 4)
+          ctx.drawImage(womenSprite, women.x + 20, GROUND_Y - 30, 34, 34)
         }
       }
 
-      ctx.font = '40px sans-serif'
-      ctx.textBaseline = 'top'
-      ctx.fillText('🏍️', BROTHER_X, game.brotherY)
+      ctx.drawImage(brotherSprite, BROTHER_X, game.brotherY, BROTHER_SIZE, BROTHER_SIZE)
 
       // Score readout drawn on canvas avoids per-frame React re-renders.
       ctx.fillStyle = '#f2e8d5'
       ctx.font = 'bold 16px "Impact", "Oswald", sans-serif'
+      ctx.textBaseline = 'top'
       ctx.textAlign = 'right'
       const scoreLabel = `HI ${String(game.highScore).padStart(5, '0')}   ${String(Math.floor(game.score)).padStart(5, '0')}`
       ctx.fillText(scoreLabel, CANVAS_WIDTH - 12, 12)
