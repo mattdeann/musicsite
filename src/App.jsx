@@ -6,7 +6,7 @@ import cena1 from './assets/cena1.jpeg'
 import cena2 from './assets/cena2.jpeg'
 import shark1 from './assets/shark1.jpeg'
 import eagleSoundUrl from './assets/eagle-sound_140bpm_C_major.wav'
-import DinoGame from './DinoGame.jsx'
+import BrotherGame from './BrotherGame.jsx'
 
 // YouTube video IDs (the string after v= in a YouTube URL).
 const YOUTUBE_VIDEO_IDS = [
@@ -212,8 +212,8 @@ export default function App() {
         </div>
       </section>
 
-      {/* DINO GAME — Chrome offline runner, macho-tinted */}
-      <DinoGame />
+      {/* BROTHER GAME — Chrome offline runner, macho-tinted */}
+      <BrotherGame />
 
       <footer className="footer">
         <span aria-hidden="true">🏍️ 🦅 🔥</span>

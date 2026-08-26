@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 const CANVAS_WIDTH = 600
 const CANVAS_HEIGHT = 160
 const GROUND_Y = 130
-const DINO_X = 40
-const DINO_SIZE = 40
+const BROTHER_X = 40
+const BROTHER_SIZE = 40
 const GRAVITY = 0.7
 const JUMP_VELOCITY = -12
 const INITIAL_SPEED = 6
@@ -14,7 +14,7 @@ const OBSTACLE_MAX_GAP_PX = 520
 // Emoji glyphs don't fill their box — trim the collision box so brushing past feels fair.
 const COLLISION_PADDING_PX = 8
 
-export default function DinoGame() {
+export default function BrotherGame() {
   const canvasRef = useRef(null)
   const [uiState, setUiState] = useState('ready')
 
@@ -24,26 +24,26 @@ export default function DinoGame() {
 
     const game = {
       status: 'ready',
-      dinoY: GROUND_Y - DINO_SIZE,
+      brotherY: GROUND_Y - BROTHER_SIZE,
       velocityY: 0,
       isAirborne: false,
-      obstacles: [],
+      women: [],
       speed: INITIAL_SPEED,
       distance: 0,
-      nextObstacleAt: OBSTACLE_MIN_GAP_PX,
+      nextWomenAt: OBSTACLE_MIN_GAP_PX,
       score: 0,
       highScore: 0,
       cloudX: CANVAS_WIDTH * 0.7,
     }
 
     function resetGame() {
-      game.dinoY = GROUND_Y - DINO_SIZE
+      game.brotherY = GROUND_Y - BROTHER_SIZE
       game.velocityY = 0
       game.isAirborne = false
-      game.obstacles = []
+      game.women = []
       game.speed = INITIAL_SPEED
       game.distance = 0
-      game.nextObstacleAt = OBSTACLE_MIN_GAP_PX
+      game.nextWomenAt = OBSTACLE_MIN_GAP_PX
       game.score = 0
     }
 
@@ -105,9 +105,9 @@ export default function DinoGame() {
 
       if (game.status === 'playing') {
         game.velocityY += GRAVITY
-        game.dinoY += game.velocityY
-        if (game.dinoY >= GROUND_Y - DINO_SIZE) {
-          game.dinoY = GROUND_Y - DINO_SIZE
+        game.brotherY += game.velocityY
+        if (game.brotherY >= GROUND_Y - BROTHER_SIZE) {
+          game.brotherY = GROUND_Y - BROTHER_SIZE
           game.velocityY = 0
           game.isAirborne = false
         }
@@ -115,27 +115,27 @@ export default function DinoGame() {
         game.distance += game.speed
         game.speed += SPEED_INCREMENT_PER_FRAME
 
-        if (game.distance >= game.nextObstacleAt) {
+        if (game.distance >= game.nextWomenAt) {
           const isDouble = Math.random() < 0.2
-          game.obstacles.push({ x: CANVAS_WIDTH, width: isDouble ? 44 : 24, height: 34 })
+          game.women.push({ x: CANVAS_WIDTH, width: isDouble ? 44 : 24, height: 34 })
           const gapRange = OBSTACLE_MAX_GAP_PX - OBSTACLE_MIN_GAP_PX
-          game.nextObstacleAt = game.distance + OBSTACLE_MIN_GAP_PX + Math.random() * gapRange
+          game.nextWomenAt = game.distance + OBSTACLE_MIN_GAP_PX + Math.random() * gapRange
         }
 
-        for (const obstacle of game.obstacles) {
-          obstacle.x -= game.speed
+        for (const women of game.women) {
+          women.x -= game.speed
         }
-        game.obstacles = game.obstacles.filter((obstacle) => obstacle.x > -obstacle.width)
+        game.women = game.women.filter((women) => women.x > -women.width)
 
-        const dinoLeft = DINO_X + COLLISION_PADDING_PX
-        const dinoRight = DINO_X + DINO_SIZE - COLLISION_PADDING_PX
-        const dinoBottom = game.dinoY + DINO_SIZE
-        for (const obstacle of game.obstacles) {
-          const obstacleTop = GROUND_Y - obstacle.height
+        const brotherLeft = BROTHER_X + COLLISION_PADDING_PX
+        const brotherRight = BROTHER_X + BROTHER_SIZE - COLLISION_PADDING_PX
+        const brotherBottom = game.brotherY + BROTHER_SIZE
+        for (const women of game.women) {
+          const womenTop = GROUND_Y - women.height
           if (
-            dinoLeft < obstacle.x + obstacle.width - COLLISION_PADDING_PX &&
-            dinoRight > obstacle.x + COLLISION_PADDING_PX &&
-            dinoBottom > obstacleTop
+            brotherLeft < women.x + women.width - COLLISION_PADDING_PX &&
+            brotherRight > women.x + COLLISION_PADDING_PX &&
+            brotherBottom > womenTop
           ) {
             game.status = 'over'
             if (Math.floor(game.score) > game.highScore) {
@@ -151,16 +151,16 @@ export default function DinoGame() {
 
       ctx.font = '34px sans-serif'
       ctx.textBaseline = 'alphabetic'
-      for (const obstacle of game.obstacles) {
-        ctx.fillText('🌵', obstacle.x, GROUND_Y + 4)
-        if (obstacle.width > 30) {
-          ctx.fillText('🌵', obstacle.x + 20, GROUND_Y + 4)
+      for (const women of game.women) {
+        ctx.fillText('👯‍♀️', women.x, GROUND_Y + 4)
+        if (women.width > 30) {
+          ctx.fillText('👯‍♀️', women.x + 20, GROUND_Y + 4)
         }
       }
 
       ctx.font = '40px sans-serif'
       ctx.textBaseline = 'top'
-      ctx.fillText('🦖', DINO_X, game.dinoY)
+      ctx.fillText('🏍️', BROTHER_X, game.brotherY)
 
       // Score readout drawn on canvas avoids per-frame React re-renders.
       ctx.fillStyle = '#f2e8d5'
@@ -182,16 +182,16 @@ export default function DinoGame() {
   }, [])
 
   return (
-    <section className="dino-game">
-      <div className="dino-stage">
+    <section className="brother-game">
+      <div className="brother-stage">
         <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
         {uiState !== 'playing' && (
-          <div className="dino-overlay" aria-hidden="true">
+          <div className="brother-overlay" aria-hidden="true">
             {uiState === 'ready' ? 'TAP TO PLAY' : 'GAME OVER — TAP TO RESTART'}
           </div>
         )}
       </div>
-      <p className="dino-hint">SPACE or TAP to jump. Don't hit the cactus.</p>
+      <p className="brother-hint">SPACE or TAP to jump. Don't hit the women.</p>
     </section>
   )
 }
