@@ -111,16 +111,21 @@ export default function App() {
       <div style={{fontSize: 50}}>THE GOOD STUFF</div>
 
       <div className="video-grid">
-        {YOUTUBE_VIDEO_IDS.map((videoId) => (
-          <div key={videoId} className="video-frame">
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={`Embedded video ${videoId}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
-        ))}
+        {YOUTUBE_VIDEO_IDS.map((videoId, index) => {
+          // Browsers block autoplay with audio, so the first video mutes to satisfy that policy.
+          const isFirst = index === 0
+          const params = isFirst ? '?autoplay=1&mute=1&playsinline=1' : ''
+          return (
+            <div key={videoId} className="video-frame">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}${params}`}
+                title={`Embedded video ${videoId}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          )
+        })}
       </div>
 
       {/* APEX — full-bleed shark image behind a dark rust overlay */}
