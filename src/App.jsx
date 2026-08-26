@@ -53,10 +53,11 @@ function useEagleTrail() {
   }, [])
 }
 
-// Autoplay policy blocks sound until a user gesture. The first video starts muted;
-// this hook loads the YouTube IFrame API and re-unmutes it on every click anywhere,
-// so if the user manually mutes via the player controls the next click undoes it.
-function useUnmuteVideoOnClick() {
+// Swap the playing song every N clicks — a random grid video takes over, others pause.
+// Uses the YouTube IFrame API so we don't reload iframe src on each swap.
+const CLICKS_PER_SONG_CHANGE = 3
+
+function useRandomVideoAutoplayOnClick() {
   useEffect(() => {
     const YT_API_SRC = 'https://www.youtube.com/iframe_api'
     if (!document.querySelector(`script[src="${YT_API_SRC}"]`)) {
@@ -65,33 +66,46 @@ function useUnmuteVideoOnClick() {
       document.head.appendChild(tag)
     }
 
-    let player = null
-    let hasUnmuted = false
+    const players = []
 
-    function tryCreatePlayer() {
+    function tryCreatePlayers() {
       if (!window.YT || !window.YT.Player) return
-      if (player) return
-      const iframe = document.getElementById('primary-video')
-      if (!iframe) return
-      player = new window.YT.Player('primary-video')
+      if (players.length > 0) return
+      const iframes = document.querySelectorAll('iframe[id^="yt-player-"]')
+      iframes.forEach((iframe) => {
+        players.push(new window.YT.Player(iframe.id))
+      })
     }
 
     // YT API invokes this global once the script finishes loading.
     const previousCallback = window.onYouTubeIframeAPIReady
     window.onYouTubeIframeAPIReady = () => {
       previousCallback?.()
-      tryCreatePlayer()
+      tryCreatePlayers()
     }
-    tryCreatePlayer()
+    tryCreatePlayers()
 
-    function unmute() {
-      if ( !player || typeof player.unMute !== 'function') return
-      player.unMute()
-      player.setVolume(60)
+    let clickCount = 0
+
+    function handleClick() {
+      clickCount += 1
+      if (clickCount % CLICKS_PER_SONG_CHANGE !== 0) return
+      if (players.length === 0) return
+      const randomIndex = Math.floor(Math.random() * players.length)
+      players.forEach((player, index) => {
+        if (typeof player.pauseVideo !== 'function') return
+        if (index === randomIndex) {
+          player.unMute()
+          player.setVolume(60)
+          player.playVideo()
+        } else {
+          player.pauseVideo()
+        }
+      })
     }
 
-    window.addEventListener('click', unmute)
-    return () => window.removeEventListener('click', unmute)
+    window.addEventListener('click', handleClick)
+    return () => window.removeEventListener('click', handleClick)
   }, [])
 }
 
@@ -197,7 +211,7 @@ export default function App() {
   useEagleTrail()
   useEagleFireworks()
   useEagleScreech()
-  useUnmuteVideoOnClick()
+  useRandomVideoAutoplayOnClick()
   useParallax()
 
   return (
@@ -214,15 +228,6 @@ export default function App() {
       {/* HERO — sits over the shared backdrop; ::before adds the flame overlay */}
       <header className="hero">
         <div className="hero-inner">
-          <div className="video-frame hero-video" data-parallax-speed="0.25">
-            <iframe
-              id="primary-video"
-              src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_IDS[0]}?autoplay=1&mute=1&playsinline=1&enablejsapi=1`}
-              title={`Embedded video ${YOUTUBE_VIDEO_IDS[0]}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
           <h1 className="title">{PAGE_TITLE}</h1>
           <p className="subtitle">{PAGE_SUBTITLE}</p>
         </div>
@@ -250,10 +255,11 @@ export default function App() {
       <div style={{fontSize: 50}}>DANGER: MEN ONLY</div>
 
       <div className="video-grid">
-        {YOUTUBE_VIDEO_IDS.slice(1).map((videoId) => (
+        {YOUTUBE_VIDEO_IDS.map((videoId, index) => (
           <div key={videoId} className="video-frame">
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}`}
+              id={`yt-player-${index}`}
+              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&playsinline=1`}
               title={`Embedded video ${videoId}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
