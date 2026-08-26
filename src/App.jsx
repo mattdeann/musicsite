@@ -5,8 +5,8 @@ import biker3 from './assets/biker3.jpeg'
 import cena1 from './assets/cena1.jpeg'
 import cena2 from './assets/cena2.jpeg'
 import shark1 from './assets/shark1.jpeg'
-import shark2 from './assets/shark2.jpeg'
 import eagleSoundUrl from './assets/eagle-sound_140bpm_C_major.wav'
+import DinoGame from './DinoGame.jsx'
 
 // YouTube video IDs (the string after v= in a YouTube URL).
 const YOUTUBE_VIDEO_IDS = [
@@ -212,13 +212,8 @@ export default function App() {
         </div>
       </section>
 
-      {/* STALKING STRIP — shark2 tiled behind a whisper of copy, low and slow */}
-      <section
-        className="stalking-strip"
-        style={{ backgroundImage: `url(${shark2})` }}
-      >
-        <p>Never surface. Always circling.</p>
-      </section>
+      {/* DINO GAME — Chrome offline runner, macho-tinted */}
+      <DinoGame />
 
       <footer className="footer">
         <span aria-hidden="true">🏍️ 🦅 🔥</span>
