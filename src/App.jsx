@@ -100,6 +100,46 @@ function useUnmuteFirstVideoOnClick() {
   }, [])
 }
 
+// Reads --parallax-y and lets each element position its background/transform via that var.
+// Small offsets keep the illusion subtle enough that `background-size: cover` still hides the edges.
+function useParallax() {
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll('[data-parallax-speed]'))
+    if (elements.length === 0) return
+
+    let isScheduled = false
+
+    function updateParallax() {
+      const viewportHeight = window.innerHeight
+      for (const element of elements) {
+        const rect = element.getBoundingClientRect()
+        const elementCenterY = rect.top + rect.height / 2
+        const distanceFromViewportCenter = elementCenterY - viewportHeight / 2
+        const speed = parseFloat(element.dataset.parallaxSpeed) || 0.2
+        // Negative sign makes the image lag behind the scroll, which reads as depth.
+        const offset = -distanceFromViewportCenter * speed
+        element.style.setProperty('--parallax-y', `${offset.toFixed(1)}px`)
+      }
+      isScheduled = false
+    }
+
+    function scheduleUpdate() {
+      if (isScheduled) return
+      isScheduled = true
+      requestAnimationFrame(updateParallax)
+    }
+
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+    updateParallax()
+
+    return () => {
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+    }
+  }, [])
+}
+
 function useEagleScreech() {
   useEffect(() => {
     function playScreech() {
@@ -119,16 +159,23 @@ export default function App() {
   useEagleTrail()
   useEagleScreech()
   useUnmuteFirstVideoOnClick()
+  useParallax()
 
   return (
     <main className="page">
       {/* HERO — Cena gym backdrop blended with fire; biker skeleton floats on top */}
       <header
         className="hero"
+        data-parallax-speed="0.15"
         style={{ backgroundImage: `url(${cena1})` }}
       >
         <div className="hero-inner">
-          <img className="hero-art" src={biker1} alt="Skeleton biker riding through flames" />
+          <img
+            className="hero-art"
+            src={biker1}
+            alt="Skeleton biker riding through flames"
+            data-parallax-speed="0.25"
+          />
           <h1 className="title">{PAGE_TITLE}</h1>
           <p className="subtitle">{PAGE_SUBTITLE}</p>
         </div>
@@ -138,6 +185,7 @@ export default function App() {
       <section className="welcome-block">
         <div
           className="welcome-portrait"
+          data-parallax-speed="0.2"
           style={{ backgroundImage: `url(${cena2})` }}
           aria-label="Salute to the code"
           role="img"
@@ -148,7 +196,7 @@ export default function App() {
       </section>
 
       {/* BANNER — chopper gang with a gradient mask fading into the page */}
-      <figure className="banner" style={{ backgroundImage: `url(${biker2})` }}>
+      <figure className="banner" data-parallax-speed="0.2" style={{ backgroundImage: `url(${biker2})` }}>
         <figcaption>Balls deep with my brothers. Loud pipes save lives.</figcaption>
       </figure>
 
@@ -177,6 +225,7 @@ export default function App() {
       {/* APEX — full-bleed shark image behind a dark rust overlay */}
       <section
         className="apex"
+        data-parallax-speed="0.2"
         style={{ backgroundImage: `url(${shark1})` }}
       >
         <div className="apex-content">
@@ -199,6 +248,7 @@ export default function App() {
       <section className="crew">
         <div
           className="crew-portrait"
+          data-parallax-speed="0.2"
           style={{ backgroundImage: `url(${biker3})` }}
           aria-label="Tattooed brother of the road"
           role="img"

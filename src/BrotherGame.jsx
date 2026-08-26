@@ -191,7 +191,7 @@ export default function BrotherGame() {
           </div>
         )}
       </div>
-      <p className="brother-hint">SPACE or TAP to get sweet air, brother.<br/> Avoid the women at all costs.</p>
+      <p className="brother-hint" style={{textAlign: 'center'}}>SPACE or TAP to get sweet air, brother.<br/> Avoid the women at all costs.</p>
     </section>
   )
 }
