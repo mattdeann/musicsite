@@ -111,13 +111,20 @@ function useParallax() {
 
     function updateParallax() {
       const viewportHeight = window.innerHeight
+      const scrollY = window.scrollY
       for (const element of elements) {
-        const rect = element.getBoundingClientRect()
-        const elementCenterY = rect.top + rect.height / 2
-        const distanceFromViewportCenter = elementCenterY - viewportHeight / 2
         const speed = parseFloat(element.dataset.parallaxSpeed) || 0.2
-        // Negative sign makes the image lag behind the scroll, which reads as depth.
-        const offset = -distanceFromViewportCenter * speed
+        let offset
+        if (element.dataset.parallaxScroll !== undefined) {
+          // Fixed elements have no meaningful viewport position — parallax against raw scrollY.
+          offset = scrollY * speed
+        } else {
+          const rect = element.getBoundingClientRect()
+          const elementCenterY = rect.top + rect.height / 2
+          const distanceFromViewportCenter = elementCenterY - viewportHeight / 2
+          // Negative sign makes the image lag behind the scroll, which reads as depth.
+          offset = -distanceFromViewportCenter * speed
+        }
         element.style.setProperty('--parallax-y', `${offset.toFixed(1)}px`)
       }
       isScheduled = false
@@ -163,12 +170,17 @@ export default function App() {
 
   return (
     <main className="page">
-      {/* HERO — Cena gym backdrop blended with fire; biker skeleton floats on top */}
-      <header
-        className="hero"
+      {/* Page-wide tiled Cena backdrop with negative parallax; sits behind every section. */}
+      <div
+        className="page-backdrop"
+        data-parallax-scroll
         data-parallax-speed="-0.35"
         style={{ backgroundImage: `url(${cena1})` }}
-      >
+        aria-hidden="true"
+      />
+
+      {/* HERO — sits over the shared backdrop; ::before adds the flame overlay */}
+      <header className="hero">
         <div className="hero-inner">
           <img
             className="hero-art"

@@ -81,20 +81,28 @@ body {
   align-items: center;
   padding: 0 0 4rem;
   gap: 3rem;
+  position: relative;
 }
 
-/* HERO — Cena in the gym is baked in as a background layer; blood/flame gradient sits over him. */
+/* Page-wide tiled Cena wall behind every section; parallax offset written by useParallax. */
+.page-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: repeat;
+  background-size: 220px auto;
+  background-position: center calc(50% + var(--parallax-y, 0px));
+  background-color: rgba(10, 8, 6, 0.55);
+  background-blend-mode: multiply;
+  will-change: background-position;
+}
+
+/* HERO — sits over the page-wide backdrop; ::before adds the flame overlay for readability. */
 .hero {
   width: 100%;
   position: relative;
   padding: 4rem 1.5rem 5rem;
-  background-color: var(--macho-black);
-  /* Tiled Cena wall — small enough that repeats read as pattern rather than photo. */
-  background-size: 220px auto;
-  background-repeat: repeat;
-  background-position: center calc(30% + var(--parallax-y, 0px));
-  will-change: background-position;
-  background-blend-mode: luminosity;
   isolation: isolate;
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 40px), 50% 100%, 0 calc(100% - 40px));
 }
