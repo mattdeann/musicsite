@@ -57,6 +57,49 @@ function useEagleTrail() {
   }, [])
 }
 
+// Autoplay policy blocks sound until a user gesture. The first video starts muted;
+// this hook loads the YouTube IFrame API and unmutes it on the first click anywhere.
+function useUnmuteFirstVideoOnClick() {
+  useEffect(() => {
+    const YT_API_SRC = 'https://www.youtube.com/iframe_api'
+    if (!document.querySelector(`script[src="${YT_API_SRC}"]`)) {
+      const tag = document.createElement('script')
+      tag.src = YT_API_SRC
+      document.head.appendChild(tag)
+    }
+
+    let player = null
+    let hasUnmuted = false
+
+    function tryCreatePlayer() {
+      if (!window.YT || !window.YT.Player) return
+      if (player) return
+      const iframe = document.getElementById('primary-video')
+      if (!iframe) return
+      player = new window.YT.Player('primary-video')
+    }
+
+    // YT API invokes this global once the script finishes loading.
+    const previousCallback = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => {
+      previousCallback?.()
+      tryCreatePlayer()
+    }
+    tryCreatePlayer()
+
+    function unmute() {
+      if (hasUnmuted || !player || typeof player.unMute !== 'function') return
+      player.unMute()
+      player.setVolume(60)
+      hasUnmuted = true
+      window.removeEventListener('click', unmute)
+    }
+
+    window.addEventListener('click', unmute)
+    return () => window.removeEventListener('click', unmute)
+  }, [])
+}
+
 function useEagleScreech() {
   useEffect(() => {
     function playScreech() {
@@ -75,6 +118,7 @@ function useEagleScreech() {
 export default function App() {
   useEagleTrail()
   useEagleScreech()
+  useUnmuteFirstVideoOnClick()
 
   return (
     <main className="page">
@@ -113,11 +157,13 @@ export default function App() {
       <div className="video-grid">
         {YOUTUBE_VIDEO_IDS.map((videoId, index) => {
           // Browsers block autoplay with audio, so the first video mutes to satisfy that policy.
+          // enablejsapi=1 lets useUnmuteFirstVideoOnClick control it via the YouTube IFrame API.
           const isFirst = index === 0
-          const params = isFirst ? '?autoplay=1&mute=1&playsinline=1' : ''
+          const params = isFirst ? '?autoplay=1&mute=1&playsinline=1&enablejsapi=1' : ''
           return (
             <div key={videoId} className="video-frame">
               <iframe
+                id={isFirst ? 'primary-video' : undefined}
                 src={`https://www.youtube.com/embed/${videoId}${params}`}
                 title={`Embedded video ${videoId}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
