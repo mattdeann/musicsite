@@ -1,41 +1,266 @@
 :root {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color-scheme: light dark;
-  background: #0f0f10;
-  color: #f5f5f5;
+  --macho-black: #0a0806;
+  --macho-charcoal: #1a1512;
+  --macho-rust: #8b2500;
+  --macho-flame: #ff6b1a;
+  --macho-gold: #d4a017;
+  --macho-bone: #f2e8d5;
+  --macho-blood: #b3120b;
+
+  font-family: 'Impact', 'Oswald', 'Arial Black', system-ui, sans-serif;
+  color-scheme: dark;
+  background: var(--macho-black);
+  color: var(--macho-bone);
 }
 
 * { box-sizing: border-box; }
 
 html, body, #root { height: 100%; margin: 0; }
 
+body {
+  background:
+    radial-gradient(ellipse at top, rgba(255, 107, 26, 0.15), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(139, 37, 0, 0.2), transparent 70%),
+    repeating-linear-gradient(
+      45deg,
+      var(--macho-black) 0 20px,
+      var(--macho-charcoal) 20px 40px
+    );
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text x='0' y='26' font-size='26'>🦅</text></svg>") 4 4, auto;
+}
+
+/* Trippy eagle trail — spawned by useEagleTrail, self-destructs on animationend. */
+.cursor-trail {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 24px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity, filter;
+  animation: eagle-trail 1100ms ease-out forwards;
+}
+
+@keyframes eagle-trail {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
+    filter:
+      drop-shadow(0 0 6px var(--macho-flame))
+      drop-shadow(0 0 12px var(--macho-blood))
+      hue-rotate(0deg)
+      blur(0);
+  }
+  60% {
+    opacity: 0.6;
+    filter:
+      drop-shadow(0 0 12px var(--macho-flame))
+      drop-shadow(0 0 20px var(--macho-gold))
+      hue-rotate(180deg)
+      blur(1px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.4) rotate(calc(var(--trail-spin, 1) * 45deg));
+    filter:
+      drop-shadow(0 0 24px var(--macho-flame))
+      drop-shadow(0 0 32px var(--macho-blood))
+      hue-rotate(360deg)
+      blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-trail { display: none; }
+}
+
 .page {
   min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  gap: 2rem;
+  padding: 0 0 4rem;
+  gap: 3rem;
+}
+
+/* HERO — Cena in the gym is baked in as a background layer; blood/flame gradient sits over him. */
+.hero {
+  width: 100%;
+  position: relative;
+  padding: 4rem 1.5rem 5rem;
+  background-color: var(--macho-black);
+  background-size: cover;
+  background-position: center 30%;
+  background-blend-mode: luminosity;
+  isolation: isolate;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 40px), 50% 100%, 0 calc(100% - 40px));
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 107, 26, 0.35), transparent 60%),
+    linear-gradient(180deg, rgba(10, 8, 6, 0.7), rgba(139, 37, 0, 0.85));
+  z-index: -1;
+}
+
+.hero-inner {
+  text-align: center;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.hero-art {
+  display: block;
+  margin: 0 auto 1rem;
+  width: clamp(200px, 32vw, 320px);
+  height: auto;
+  filter: drop-shadow(0 0 40px rgba(255, 107, 26, 0.85));
+  mix-blend-mode: screen;
 }
 
 .title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-family: 'Impact', 'Oswald', 'Arial Black', sans-serif;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
   margin: 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--macho-bone);
+  text-shadow:
+    2px 2px 0 var(--macho-blood),
+    4px 4px 0 var(--macho-rust),
+    6px 6px 20px rgba(255, 107, 26, 0.6);
+  -webkit-text-stroke: 1px var(--macho-gold);
+}
+
+.subtitle {
+  margin: 0.75rem 0 0;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  color: var(--macho-flame);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* WELCOME BLOCK — grid: text + portrait fused together via clip-path and mask fade */
+.welcome-block {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 1.5rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 0;
+  background: linear-gradient(135deg, rgba(26, 21, 18, 0.95), rgba(10, 8, 6, 0.95));
+  border: 2px solid var(--macho-rust);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.welcome-portrait {
+  background-size: cover;
+  background-position: center top;
+  min-height: 320px;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  filter: contrast(1.1) saturate(1.1);
+  border-right: 2px solid var(--macho-gold);
+}
+
+.welcome-copy {
+  padding: 2rem 2rem 2rem 1rem;
+  display: flex;
+  align-items: center;
+  border-left: 4px solid var(--macho-flame);
+}
+
+.welcome-copy p {
+  margin: 0;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.7;
+  color: var(--macho-bone);
+}
+
+@media (max-width: 640px) {
+  .welcome-block {
+    grid-template-columns: 1fr;
+  }
+  .welcome-portrait {
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+    min-height: 260px;
+  }
+  .welcome-copy {
+    padding: 1.5rem;
+    border-left: none;
+    border-top: 4px solid var(--macho-flame);
+  }
+}
+
+/* BANNER — pack ride is background of the figure; edges fade with mask, caption sits on gradient */
+.banner {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 1.5rem;
+  padding: 0;
+  aspect-ratio: 16 / 7;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  border: 3px solid var(--macho-gold);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px var(--macho-black),
+    0 0 0 5px var(--macho-rust),
+    0 20px 50px rgba(0, 0, 0, 0.7);
+  filter: contrast(1.1) saturate(1.15);
+  -webkit-mask-image: linear-gradient(180deg, black 60%, rgba(0, 0, 0, 0.75) 100%);
+  mask-image: linear-gradient(180deg, black 60%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+.banner figcaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(180deg, transparent, rgba(10, 8, 6, 0.95));
+  color: var(--macho-flame);
+  font-family: 'Impact', 'Oswald', sans-serif;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   text-align: center;
-  letter-spacing: -0.02em;
+  text-shadow: 2px 2px 0 var(--macho-black);
+}
+
+/* Grid of embedded videos — 1 col on mobile, auto-fits wider viewports. */
+.video-grid {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
 /* 16:9 responsive wrapper — iframe fills the box. */
 .video-frame {
   position: relative;
   width: 100%;
-  max-width: 960px;
   aspect-ratio: 16 / 9;
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   background: #000;
+  border: 3px solid var(--macho-gold);
+  box-shadow:
+    0 0 0 2px var(--macho-black),
+    0 0 0 5px var(--macho-rust),
+    0 25px 60px rgba(255, 107, 26, 0.35),
+    0 25px 80px rgba(0, 0, 0, 0.9);
 }
 
 .video-frame iframe {
@@ -44,4 +269,231 @@ html, body, #root { height: 100%; margin: 0; }
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* APEX — full-bleed shark scene with heavy rust/multiply overlay, angled clip so it locks into flow */
+.apex {
+  width: 100%;
+  min-height: 320px;
+  padding: 5rem 1.5rem;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--macho-blood);
+  background-blend-mode: multiply;
+  clip-path: polygon(0 40px, 100% 0, 100% calc(100% - 40px), 0 100%);
+  isolation: isolate;
+}
+
+.apex::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(10, 8, 6, 0.85) 0%, rgba(139, 37, 0, 0.4) 50%, rgba(10, 8, 6, 0.85) 100%),
+    radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
+  z-index: -1;
+}
+
+.apex-content {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.apex-content h2 {
+  margin: 0 0 1rem;
+  font-family: 'Impact', 'Oswald', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  letter-spacing: 0.15em;
+  color: var(--macho-bone);
+  text-transform: uppercase;
+  text-shadow:
+    3px 3px 0 var(--macho-blood),
+    5px 5px 0 var(--macho-rust),
+    8px 8px 25px rgba(0, 0, 0, 0.9);
+  -webkit-text-stroke: 1px var(--macho-gold);
+}
+
+.apex-content p {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.5;
+  color: var(--macho-bone);
+  font-style: italic;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+/* CREEDS — three pillars of the macho gospel. */
+.creeds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 960px;
+  padding: 0 1.5rem;
+}
+
+.creed-card {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: linear-gradient(180deg, var(--macho-charcoal), var(--macho-black));
+  border: 2px solid var(--macho-rust);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(212, 160, 23, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.creed-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--macho-flame);
+  box-shadow:
+    inset 0 1px 0 rgba(212, 160, 23, 0.5),
+    0 12px 32px rgba(255, 107, 26, 0.4);
+}
+
+.creed-icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+}
+
+.creed-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  letter-spacing: 0.15em;
+  color: var(--macho-gold);
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--macho-black);
+}
+
+.creed-body {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--macho-bone);
+}
+
+/* CREW — portrait rendered as clipped diagonal background pane, fused with copy pane */
+.crew {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 0;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 1.5rem;
+  background: linear-gradient(135deg, rgba(26, 21, 18, 0.95), rgba(10, 8, 6, 0.98));
+  border: 2px solid var(--macho-rust);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.crew-portrait {
+  background-size: cover;
+  background-position: center;
+  min-height: 340px;
+  clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+  filter: contrast(1.15) saturate(1.1);
+  border-right: 2px solid var(--macho-gold);
+}
+
+.crew-copy {
+  padding: 2rem 2rem 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.crew-copy h2 {
+  margin: 0 0 0.75rem;
+  font-family: 'Impact', 'Oswald', sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: 0.15em;
+  color: var(--macho-gold);
+  text-shadow: 2px 2px 0 var(--macho-blood), 4px 4px 0 var(--macho-rust);
+}
+
+.crew-copy p {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.7;
+  color: var(--macho-bone);
+}
+
+@media (max-width: 640px) {
+  .crew {
+    grid-template-columns: 1fr;
+  }
+  .crew-portrait {
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+    min-height: 260px;
+  }
+  .crew-copy {
+    padding: 1.5rem;
+  }
+}
+
+/* STALKING STRIP — narrow band, shark background repeats subtly with heavy tint */
+.stalking-strip {
+  width: 100%;
+  padding: 2.5rem 1.5rem;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--macho-black);
+  background-blend-mode: overlay;
+  position: relative;
+  isolation: isolate;
+  border-top: 2px solid var(--macho-rust);
+  border-bottom: 2px solid var(--macho-rust);
+}
+
+.stalking-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10, 8, 6, 0.95), rgba(139, 37, 0, 0.4), rgba(10, 8, 6, 0.95));
+  z-index: -1;
+}
+
+.stalking-strip p {
+  margin: 0;
+  text-align: center;
+  font-family: 'Impact', 'Oswald', sans-serif;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--macho-flame);
+  text-shadow: 3px 3px 0 var(--macho-black), 5px 5px 15px rgba(0, 0, 0, 0.9);
+}
+
+/* FOOTER — the last word, growled. */
+.footer {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 2px solid var(--macho-rust);
+  width: 100%;
+  max-width: 960px;
+  margin: 0 1.5rem;
+}
+
+.footer span {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5em;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--macho-flame);
 }
