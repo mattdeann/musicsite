@@ -70,8 +70,49 @@ body {
   }
 }
 
+/* Firework-style burst — spawned by useEagleFireworks, one shard per eagle in the ring.
+   Each shard reads --burst-x/--burst-y set at spawn time and flies to that offset. */
+.eagle-burst {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 28px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity, filter;
+  animation: eagle-burst 900ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes eagle-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    filter:
+      drop-shadow(0 0 8px var(--macho-flame))
+      drop-shadow(0 0 14px var(--macho-gold));
+  }
+  40% {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 16px var(--macho-flame))
+      drop-shadow(0 0 22px var(--macho-blood));
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--burst-x, 0px)), calc(-50% + var(--burst-y, 0px)))
+      scale(1.4)
+      rotate(calc(var(--burst-spin, 1) * 220deg));
+    filter:
+      drop-shadow(0 0 24px var(--macho-flame))
+      drop-shadow(0 0 32px var(--macho-blood))
+      blur(2px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cursor-trail { display: none; }
+  .eagle-burst { display: none; }
 }
 
 .page {
@@ -123,13 +164,9 @@ body {
   margin: 0 auto;
 }
 
-.hero-art {
-  display: block;
-  margin: 0 auto 1rem;
-  width: clamp(200px, 32vw, 320px);
-  height: auto;
-  filter: drop-shadow(0 0 40px rgba(255, 107, 26, 0.85));
-  mix-blend-mode: screen;
+.hero-video {
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
   transform: translateY(var(--parallax-y, 0px));
   will-change: transform;
 }

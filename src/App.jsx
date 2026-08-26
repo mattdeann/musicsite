@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import biker1 from './assets/biker1.jpeg'
 import biker2 from './assets/biker2.jpeg'
 import biker3 from './assets/biker3.jpeg'
 import cena1 from './assets/cena1.jpeg'
@@ -14,19 +13,16 @@ const YOUTUBE_VIDEO_IDS = [
   'X53ZSxkQ3Ho',
   '6M4_Ommfvv0',
   'l482T0yNkeo',
+  'IyhJ69mD7xI',
   'MQNRKX8GwPo',
   'EFMD7Usflbg',
+  'sCtQKGyfW3k',
+
 ]
 const PAGE_TITLE = 'GAY? DEFINITELY NOT'
 const PAGE_SUBTITLE = 'Sleeveless denim. Open roads. No apologies. Just men.'
 const WELCOME_MESSAGE =
   "This is a shrine to the boys. Chugging brews, bald eagles, and jean jackets with the sleeves torn clean off. Wind in the beard. Fire in the chest. Crack a cold one and spend the night. We're not gay, you're gay."
-
-const MACHO_CREEDS = [
-  { icon: '🦅', title: 'RIDE FREE', body: 'One horizon. Zero regrets.' },
-  { icon: '🏍️', title: 'RUN HOT', body: 'Chrome pipes. Cracked leather.' },
-  { icon: '👕', title: 'NO SLEEVES', body: 'Denim, cut, worn, earned.' },
-]
 
 // Throttle spawn rate so we don't flood the DOM on fast mouse moves.
 const TRAIL_SPAWN_INTERVAL_MS = 35
@@ -58,8 +54,9 @@ function useEagleTrail() {
 }
 
 // Autoplay policy blocks sound until a user gesture. The first video starts muted;
-// this hook loads the YouTube IFrame API and unmutes it on the first click anywhere.
-function useUnmuteFirstVideoOnClick() {
+// this hook loads the YouTube IFrame API and re-unmutes it on every click anywhere,
+// so if the user manually mutes via the player controls the next click undoes it.
+function useUnmuteVideoOnClick() {
   useEffect(() => {
     const YT_API_SRC = 'https://www.youtube.com/iframe_api'
     if (!document.querySelector(`script[src="${YT_API_SRC}"]`)) {
@@ -88,11 +85,9 @@ function useUnmuteFirstVideoOnClick() {
     tryCreatePlayer()
 
     function unmute() {
-      if (hasUnmuted || !player || typeof player.unMute !== 'function') return
+      if ( !player || typeof player.unMute !== 'function') return
       player.unMute()
       player.setVolume(60)
-      hasUnmuted = true
-      window.removeEventListener('click', unmute)
     }
 
     window.addEventListener('click', unmute)
@@ -147,6 +142,42 @@ function useParallax() {
   }, [])
 }
 
+// Radial burst of eagles on every click — each shard flies outward on a unique vector
+// via the CSS animation's translate(var(--burst-x), var(--burst-y)) target.
+const EAGLE_BURST_COUNT = 3
+const EAGLE_BURST_MIN_DISTANCE_PX = 50
+const EAGLE_BURST_MAX_DISTANCE_PX = 140
+
+function useEagleFireworks() {
+  useEffect(() => {
+    function spawnBurst(event) {
+      for (let i = 0; i < EAGLE_BURST_COUNT; i += 1) {
+        // Evenly spaced base angles with a small jitter so the ring feels organic, not clocked.
+        const jitter = (Math.random() - 0.5) * (Math.PI / EAGLE_BURST_COUNT)
+        const angle = (i / EAGLE_BURST_COUNT) * Math.PI * 2 + jitter
+        const distance =
+          EAGLE_BURST_MIN_DISTANCE_PX +
+          Math.random() * (EAGLE_BURST_MAX_DISTANCE_PX - EAGLE_BURST_MIN_DISTANCE_PX)
+
+        const eagle = document.createElement('span')
+        eagle.className = 'eagle-burst'
+        eagle.textContent = '🦅'
+        eagle.style.left = `${event.clientX}px`
+        eagle.style.top = `${event.clientY}px`
+        eagle.style.setProperty('--burst-x', `${Math.cos(angle) * distance}px`)
+        eagle.style.setProperty('--burst-y', `${Math.sin(angle) * distance}px`)
+        eagle.style.setProperty('--burst-spin', `${Math.random() > 0.5 ? 1 : -1}`)
+        document.body.appendChild(eagle)
+
+        eagle.addEventListener('animationend', () => eagle.remove(), { once: true })
+      }
+    }
+
+    window.addEventListener('click', spawnBurst)
+    return () => window.removeEventListener('click', spawnBurst)
+  }, [])
+}
+
 function useEagleScreech() {
   useEffect(() => {
     function playScreech() {
@@ -164,8 +195,9 @@ function useEagleScreech() {
 
 export default function App() {
   useEagleTrail()
+  useEagleFireworks()
   useEagleScreech()
-  useUnmuteFirstVideoOnClick()
+  useUnmuteVideoOnClick()
   useParallax()
 
   return (
@@ -182,12 +214,15 @@ export default function App() {
       {/* HERO — sits over the shared backdrop; ::before adds the flame overlay */}
       <header className="hero">
         <div className="hero-inner">
-          <img
-            className="hero-art"
-            src={biker1}
-            alt="Skeleton biker riding through flames"
-            data-parallax-speed="0.25"
-          />
+          <div className="video-frame hero-video" data-parallax-speed="0.25">
+            <iframe
+              id="primary-video"
+              src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_IDS[0]}?autoplay=1&mute=1&playsinline=1&enablejsapi=1`}
+              title={`Embedded video ${YOUTUBE_VIDEO_IDS[0]}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
           <h1 className="title">{PAGE_TITLE}</h1>
           <p className="subtitle">{PAGE_SUBTITLE}</p>
         </div>
@@ -212,26 +247,19 @@ export default function App() {
         <figcaption>Balls deep with my brothers. Loud pipes save lives.</figcaption>
       </figure>
 
-      <div style={{fontSize: 50}}>THE GOOD STUFF</div>
+      <div style={{fontSize: 50}}>DANGER: MEN ONLY</div>
 
       <div className="video-grid">
-        {YOUTUBE_VIDEO_IDS.map((videoId, index) => {
-          // Browsers block autoplay with audio, so the first video mutes to satisfy that policy.
-          // enablejsapi=1 lets useUnmuteFirstVideoOnClick control it via the YouTube IFrame API.
-          const isFirst = index === 0
-          const params = isFirst ? '?autoplay=1&mute=1&playsinline=1&enablejsapi=1' : ''
-          return (
-            <div key={videoId} className="video-frame">
-              <iframe
-                id={isFirst ? 'primary-video' : undefined}
-                src={`https://www.youtube.com/embed/${videoId}${params}`}
-                title={`Embedded video ${videoId}`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-          )
-        })}
+        {YOUTUBE_VIDEO_IDS.slice(1).map((videoId) => (
+          <div key={videoId} className="video-frame">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title={`Embedded video ${videoId}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        ))}
       </div>
 
       {/* APEX — full-bleed shark image behind a dark rust overlay */}
@@ -245,16 +273,9 @@ export default function App() {
           <p>Only two kinds out here — the ones who bite, and the ones who get bit.</p>
         </div>
       </section>
-
-      <section className="creeds">
-        {MACHO_CREEDS.map((creed) => (
-          <article key={creed.title} className="creed-card">
-            <div className="creed-icon" aria-hidden="true">{creed.icon}</div>
-            <h2 className="creed-title">{creed.title}</h2>
-            <p className="creed-body">{creed.body}</p>
-          </article>
-        ))}
-      </section>
+      
+      {/* BROTHER GAME — Chrome offline runner, macho-tinted */}
+      <BrotherGame />
 
       {/* BROTHERHOOD — clipped diagonal portrait fused into the panel */}
       <section className="crew">
@@ -273,9 +294,6 @@ export default function App() {
           </p>
         </div>
       </section>
-
-      {/* BROTHER GAME — Chrome offline runner, macho-tinted */}
-      <BrotherGame />
 
       <footer className="footer">
         <span aria-hidden="true">🏍️ 🦅 🔥</span>
